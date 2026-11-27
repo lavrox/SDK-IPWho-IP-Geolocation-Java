@@ -152,6 +152,7 @@ class IpWhoClientTest {
         reply(401, "{\"error\":\"invalid_api_key\"}");
         IpWhoException error = assertThrows(IpWhoException.class, () -> client.lookup("8.8.8.8"));
         assertEquals(401, error.getStatusCode());
+        assertEquals("invalid_api_key", error.getMessage());
         assertFalse(error.getMessage().contains(KEY));
     }
 

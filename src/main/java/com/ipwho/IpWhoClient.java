@@ -233,6 +233,8 @@ public class IpWhoClient {
             ErrorResponse err = objectMapper.readValue(body, ErrorResponse.class);
             if (err.getMessage() != null && !err.getMessage().isEmpty()) {
                 message = err.getMessage();
+            } else if (err.getError() != null && !err.getError().isEmpty()) {
+                message = err.getError();
             }
         } catch (Exception ignored) {
             if (!body.isEmpty()) message = body;
