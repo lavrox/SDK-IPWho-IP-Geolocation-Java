@@ -2,6 +2,7 @@ package com.ipwho;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class BulkResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BulkData {
         @JsonProperty("responseArray")
+        @JsonDeserialize(contentUsing = BulkRowDeserializer.class)
         private List<IpGeoResponse> responseArray;
 
         public List<IpGeoResponse> getResponseArray() { return responseArray; }
