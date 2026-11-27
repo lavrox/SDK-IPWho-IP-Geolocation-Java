@@ -27,7 +27,7 @@ Maven:
 
 Gradle: `implementation("com.lavrox:ipwho:1.0.0")`
 
-Java 11+, OkHttp, Jackson. Package: `com.ipwho`.
+Java 11+. HTTP uses Java's built-in `HttpClient`; the one library dependency is Jackson (`jackson-databind`), which reads the JSON. Package: `com.ipwho`.
 
 ## Quick Start
 
@@ -89,8 +89,10 @@ System.out.println(tz.getCurrentTime());
 System.out.println(data.getFlag().getFlagIcon());    // 🇺🇸
 System.out.println(data.getFlag().getFlagUnicode()); // U+1F1FA U+1F1F8
 
-System.out.println(data.getCurrency().getCode());
-System.out.println(data.getCurrency().getNamePlural()); // US dollars
+if (data.getCurrency() != null) {                           // null for some addresses, such as 1.1.1.1
+    System.out.println(data.getCurrency().getCode());
+    System.out.println(data.getCurrency().getNamePlural()); // US dollars
+}
 
 IpGeoResponse.Connection conn = data.getConnection();
 System.out.println(conn.getAsnNumber());      // 15169
@@ -110,8 +112,12 @@ if (data.getUserAgent() != null) {
 
 System.out.println(client.me().getData().getIp());
 
-for (IpGeoResponse item : client.bulk(Arrays.asList("8.8.8.8", "1.1.1.1"))) {
-    System.out.println(item.getData().getIp());
+for (IpGeoResponse row : client.bulk(Arrays.asList("8.8.8.8", "1.1.1.1"))) {
+    if (row.isSuccess()) {
+        System.out.println(row.getData().getIp() + " " + row.getData().getGeoLocation().getCountry());
+    } else {
+        System.out.println(row.getData().getIp() + " " + row.getMessage());
+    }
 }
 ```
 
@@ -121,7 +127,7 @@ Overloads: `lookup(ip, format, fields)`, `me(format, fields)` (`json`/`xml`/`csv
 
 ### `new IpWhoClient(String apiKey)`
 
-Also `IpWhoClient(apiKey, baseUrl, okHttpClient)`. Empty key → `IllegalArgumentException`. Query `apiKey`.
+Also `IpWhoClient(apiKey, baseUrl, httpClient)` with a `java.net.http.HttpClient`, and `IpWhoClient(apiKey, baseUrl, httpClient, requestTimeout)`. Each request times out after 30 seconds by default. Empty key → `IllegalArgumentException`. The key is sent as `Authorization: Bearer`.
 
 ### Errors
 
@@ -150,10 +156,10 @@ Jackson maps mixed wire keys (`postal_Code`, `flag_Icon`, `isVpn`).
 ## Testing
 
 ```bash
-IPWHO_API_KEY=your_key java TestMain
+./gradlew test
 ```
 
-The live check is `examples/TestMain.java`.
+These tests need no API key: they run against a local stand-in server. `examples/TestMain.java` is a live check, which uses lookups from your quota. Run it with `IPWHO_API_KEY` set and the library and Jackson on the classpath.
 
 ## Changelog
 
